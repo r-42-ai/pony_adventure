@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>Pony Adventure</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="game">
+    <!-- Hier wird das Spiel gezeichnet (960x540, wird per CSS skaliert) -->
+    <canvas id="canvas" width="960" height="540"></canvas>
+
+    <!-- Titelbildschirm -->
+    <div id="screen-title" class="screen">
+      <div class="panel">
+        <h1>🐴 Pony Adventure</h1>
+        <p>Das Pony läuft von ganz allein.<br>Spring über Hindernisse und sammle Münzen!</p>
+        <p class="hint"><kbd>Leertaste</kbd>, <kbd>↑</kbd> oder Tippen = Springen</p>
+        <button id="btn-start" class="big">Los geht's!</button>
+        <button id="btn-shop">🛒 Shop</button>
+        <p class="stats" id="title-stats"></p>
+      </div>
+    </div>
+
+    <!-- Game Over -->
+    <div id="screen-dead" class="screen hidden">
+      <div class="panel">
+        <h2>Autsch! 🙈</h2>
+        <p id="dead-stats"></p>
+        <button id="btn-retry" class="big">Nochmal!</button>
+        <button id="btn-shop2">🛒 Shop</button>
+      </div>
+    </div>
+
+    <!-- Shop (noch ein Platzhalter) -->
+    <div id="screen-shop" class="screen hidden">
+      <div class="panel">
+        <h2>🛒 Shop</h2>
+        <p>Münzen gesamt: <strong id="shop-wallet">0</strong> 🪙</p>
+        <ul class="shop-list">
+          <li><span>🪵 Holzbretter</span><span>10 🪙</span><button disabled>bald</button></li>
+          <li><span>🪨 Steine</span><span>15 🪙</span><button disabled>bald</button></li>
+          <li><span>🪢 Seil</span><span>20 🪙</span><button disabled>bald</button></li>
+          <li><span>🌉 Brücke</span><span>50 🪙</span><button disabled>bald</button></li>
+        </ul>
+        <p class="hint">Der Shop ist noch eine Baustelle: Hier kann man später Material kaufen,<br>um Löcher zu füllen und Brücken für das Pony zu bauen.</p>
+        <button id="btn-shop-back" class="big">Zurück</button>
+        <button id="btn-reset" class="tiny">Spielstand löschen</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/game.js"></script>
+</body>
+</html>

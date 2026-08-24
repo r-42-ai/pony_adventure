@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="130" height="100" viewBox="0 0 130 100">
+  <defs>
+    <g id="leg">
+      <rect x="-4.5" y="0" width="9" height="36" rx="3.5" fill="#f4a7c3"/>
+      <rect x="-4.5" y="29" width="9" height="7" rx="2.5" fill="#6b4a3a"/>
+    </g>
+    <g id="legFar">
+      <rect x="-4.5" y="0" width="9" height="36" rx="3.5" fill="#e28fb0"/>
+      <rect x="-4.5" y="29" width="9" height="7" rx="2.5" fill="#5a3d30"/>
+    </g>
+  </defs>
+  <!-- Schweif -->
+  <path d="M24 52 C 10 50, 4 62, 8 78" stroke="#8e5bd6" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M26 48 C 14 42, 4 48, 2 60" stroke="#a97ae6" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <!-- Beine auf der abgewandten Seite -->
+  <use href="#legFar" transform="translate(38 62) rotate(22)"/>
+  <use href="#legFar" transform="translate(70 62) rotate(-18)"/>
+  <!-- Körper -->
+  <ellipse cx="58" cy="57" rx="36" ry="22" fill="#f4a7c3"/>
+  <ellipse cx="66" cy="66" rx="20" ry="10" fill="#f9c4d8"/>
+  <!-- Beine auf der zugewandten Seite -->
+  <use href="#leg" transform="translate(48 62) rotate(-16)"/>
+  <use href="#leg" transform="translate(80 62) rotate(18)"/>
+  <!-- Hals -->
+  <path d="M78 44 C 82 30, 90 20, 100 18 L 108 30 C 100 34, 94 44, 92 56 Z" fill="#f4a7c3"/>
+  <!-- Mähne -->
+  <path d="M96 10 C 84 14, 78 26, 76 42" stroke="#8e5bd6" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <!-- Kopf -->
+  <circle cx="102" cy="28" r="15" fill="#f4a7c3"/>
+  <ellipse cx="115" cy="34" rx="11" ry="8" fill="#f9c4d8"/>
+  <circle cx="120" cy="33" r="1.6" fill="#b5688a"/>
+  <!-- Ohr -->
+  <polygon points="94,16 97,2 103,14" fill="#f4a7c3"/>
+  <polygon points="96,15 97.5,7 100.5,14" fill="#f9c4d8"/>
+  <!-- Stirnlocke -->
+  <path d="M104 12 C 96 8, 90 10, 92 18" stroke="#a97ae6" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <!-- Auge -->
+  <circle cx="106" cy="25" r="3.2" fill="#2b2b2b"/>
+  <circle cx="107.2" cy="23.8" r="1.1" fill="#fff"/>
+  <!-- Wange -->
+  <circle cx="100" cy="37" r="3" fill="#ff9fc0" opacity="0.7"/>
+</svg>
