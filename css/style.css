@@ -9,6 +9,14 @@ html, body {
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   color: #333;
   overflow: hidden;
+
+  /* Auf Tablet und Handy: beim Tippen zum Springen soll nichts blau
+     aufleuchten. Der Browser markiert sonst die angetippte Stelle
+     (tap-highlight) bzw. wählt beim Wischen Text aus (user-select). */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 body {
@@ -88,6 +96,8 @@ p  { margin: .4em 0; }
 
 button {
   font: inherit;
+  touch-action: manipulation;   /* kein Doppeltipp-Zoom, keine 300ms Verzögerung */
+  -webkit-tap-highlight-color: transparent;
   font-weight: bold;
   border: 0;
   border-radius: 999px;
