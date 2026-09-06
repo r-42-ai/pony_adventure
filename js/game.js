@@ -781,8 +781,9 @@
     drawSky(t);
     drawDecoSky(t);
     drawClouds();
-    drawHills(t);
-    drawDecoBack(t);
+    drawHillRow(0.25, 150, 320, t.hillBack, GROUND_Y - 50);   // hintere Hügel
+    drawDecoBack(t);        // Bäume, Zäune, Felsen stehen dahinter …
+    drawHillRow(0.5, 100, 230, t.hillFront, GROUND_Y - 14);   // … vordere Hügel davor
     drawGround(t);
     drawDecoFront(t);
     drawCoins();
@@ -825,10 +826,6 @@
     ctx.fill();
   }
 
-  function drawHills(t) {
-    drawHillRow(0.25, 150, 320, t.hillBack, GROUND_Y - 50);   // hinten, langsam
-    drawHillRow(0.5, 100, 230, t.hillFront, GROUND_Y - 14);   // vorne, schneller
-  }
   function drawHillRow(parallax, radius, period, color, baseY) {
     ctx.fillStyle = color;
     const off = (cameraX * parallax) % period;
@@ -953,16 +950,16 @@
 
   // Koppelzäune weit hinten auf der Wiese: klein, blass und höher gesetzt,
   // damit man sie nie mit den echten Zäunen zum Springen verwechselt
+  const DECO_BASE = GROUND_Y - 6;      // Fußlinie der Hintergrund-Deko
   function drawPosts() {
-    ctx.globalAlpha = 0.55;
-    alongGround(190, 0.3, (x, i) => {
-      const y = GROUND_Y - 54;
+    ctx.globalAlpha = 0.75;
+    alongGround(200, 0.3, (x, i) => {
       ctx.fillStyle = '#c49a6c';
-      ctx.fillRect(x, y - 24, 5, 24);
-      ctx.fillRect(x + 62, y - 24, 5, 24);
+      ctx.fillRect(x, DECO_BASE - 40, 7, 40);
+      ctx.fillRect(x + 84, DECO_BASE - 40, 7, 40);
       ctx.fillStyle = '#dcb68a';
-      ctx.fillRect(x, y - 20, 67, 4);
-      ctx.fillRect(x, y - 10, 67, 4);
+      ctx.fillRect(x, DECO_BASE - 34, 91, 6);
+      ctx.fillRect(x, DECO_BASE - 19, 91, 6);
     });
     ctx.globalAlpha = 1;
   }
@@ -970,7 +967,7 @@
   function drawTrees() {
     alongGround(120, 0.45, (x, i) => {
       const s = 0.8 + hash(i) * 0.5;
-      const baseY = GROUND_Y - 16;
+      const baseY = DECO_BASE;
       const px = x + hash(i + 4) * 40;
       ctx.fillStyle = '#7a5a34';
       ctx.fillRect(px - 5 * s, baseY - 34 * s, 10 * s, 36 * s);
@@ -991,7 +988,7 @@
   function drawCliffs() {
     alongGround(240, 0.32, (x, i) => {
       const s = 0.85 + hash(i) * 0.5;
-      const baseY = GROUND_Y - 10;
+      const baseY = DECO_BASE;
       ctx.fillStyle = hash(i + 1) > 0.5 ? '#8c8177' : '#9a8f84';
       ctx.beginPath();
       ctx.moveTo(x, baseY);
