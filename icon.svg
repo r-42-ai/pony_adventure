@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Pony Adventure">
+  <title>Pony Adventure</title>
+  <defs>
+    <linearGradient id="bSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5cb6f2"/>
+      <stop offset="1" stop-color="#d8f0ff"/>
+    </linearGradient>
+    <clipPath id="bClip"><rect width="64" height="64" rx="14"/></clipPath>
+  </defs>
+  <g clip-path="url(#bClip)">
+    <rect width="64" height="64" fill="url(#bSky)"/>
+    <!-- Hügel hinten -->
+    <path d="M-4 54 C 8 46, 20 50, 32 50 C 46 50, 54 45, 68 50 L68 68 L-4 68 Z" fill="#8ed88a"/>
+    <!-- Wiese vorn -->
+    <path d="M-4 57 C 10 53, 22 57, 34 57 C 48 57, 56 53, 68 56 L68 68 L-4 68 Z" fill="#4ea84a"/>
+    <!-- Stein, über den gesprungen wird -->
+    <ellipse cx="34" cy="55" rx="7.5" ry="5" fill="#6f665c"/><ellipse cx="32.5" cy="53.5" rx="4.6" ry="2.6" fill="#9a8f84"/>
+    <!-- Münze -->
+    <circle cx="13" cy="15" r="6" fill="#f7c948" stroke="#d99a1c" stroke-width="1.6"/>
+    <polygon points="13,10.6 14.2,13.6 17.4,13.8 14.9,15.9 15.7,19 13,17.3 10.3,19 11.1,15.9 8.6,13.8 11.8,13.6" fill="#fff1b0"/>
+    <!-- Springendes Pony -->
+    <g transform="translate(-0.9 -1.6) scale(1.06)">
+      <path d="M17 28 C 8 25, 4 30, 5 37" stroke="#8e5bd6" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+      <g fill="#e28fb0">
+        <rect x="19" y="32" width="5.5" height="14" rx="2.7" transform="rotate(34 21.8 32)"/>
+        <rect x="35" y="32" width="5.5" height="14" rx="2.7" transform="rotate(-38 37.8 32)"/>
+      </g>
+      <ellipse cx="28" cy="31" rx="14" ry="9" fill="#f4a7c3"/>
+      <g fill="#f4a7c3">
+        <rect x="22" y="33" width="5.5" height="14" rx="2.7" transform="rotate(40 24.8 33)"/>
+        <rect x="34" y="33" width="5.5" height="14" rx="2.7" transform="rotate(-44 36.8 33)"/>
+      </g>
+      <path d="M37 30 C 39 22, 43 17, 47 16 L 51 22 C 46 24, 43 29, 42 36 Z" fill="#f4a7c3"/>
+      <path d="M45 11 C 39 14, 36 19, 35 26" stroke="#8e5bd6" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+      <circle cx="47" cy="19" r="6.4" fill="#f4a7c3"/>
+      <ellipse cx="52.5" cy="22" rx="4.6" ry="3.4" fill="#f9c4d8"/>
+      <polygon points="43.5,14.5 44.6,9 48,14" fill="#f4a7c3"/>
+      <circle cx="49" cy="17.6" r="1.6" fill="#2b2b2b"/>
+    </g>
+  </g>
+</svg>

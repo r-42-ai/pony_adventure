@@ -74,6 +74,10 @@ css/style.css     Aussehen der Seite/Overlays
 js/levels.js      Level-Daten (Tempo, Länge, Hindernis-Mischung)
 js/game.js        komplette Spiellogik und Zeichnen (Canvas)
 assets/*.svg      Grafiken: Pony (3 Frames), Münze, Stein, Zaun
+icon.svg          App-Icon (Master für Favicon und Touch-Icon)
+favicon.ico       Tab-Symbol mit 16/32/48 px
+apple-touch-icon.png  180 px, für »Zum Home-Bildschirm«
+og.png            1200 × 630, Vorschaubild beim Teilen
 ```
 
 Die Grafiken sind einfache SVGs und können beliebig ausgetauscht werden –
