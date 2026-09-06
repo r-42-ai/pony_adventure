@@ -618,9 +618,6 @@
   function reachFinish() {
     state = 'finish';
     finishTimer = 0;
-    for (let i = 0; i < 6; i++) {
-      effects.push({ x: cameraX + rand(200, 800), y: rand(120, 360), text: '🎉', t: rand(0, 0.3) });
-    }
   }
 
   function levelDone() {
@@ -790,6 +787,7 @@
     drawObstacles();
     drawFinish();
     drawPony();
+    drawFinishConfetti();
     drawEffects();
     drawHUD();
     if (DEBUG) drawDebug();
@@ -1056,27 +1054,246 @@
     }
   }
 
-  // Ziellinie mit Karo-Banner
+  /* --- Ziel: ein hölzerner Zielbogen ------------------------------------
+     Der Bogen steht quer über dem Weg, das Pony läuft mittendurch. Damit man
+     das Ziel schon von weitem erkennt, gehört mehr dazu als eine Linie:
+     Karo-Streifen auf dem Boden, ein warmes Leuchten, eine Wimpelkette, ein
+     Schild und zwei wehende Karo-Fähnchen. Beim Durchlaufen fliegt Konfetti.
+     Der Bogen ist innen frei – da läuft das Pony durch, springen muss es
+     hier nichts mehr. */
+  const GOAL = {
+    half: 92,                    // halbe Weite: die Pfosten stehen bei x ± half
+    postW: 20,                   // Dicke eines Pfostens
+    postTop: GROUND_Y - 178,     // Oberkante der Pfosten
+    apex: GROUND_Y - 244,        // höchster Punkt des Bogens (Mitte)
+    signW: 178, signH: 58,       // Schild über dem Bogen
+  };
+  const WOOD = '#a86b32', WOOD_DARK = '#8a5426', WOOD_LIGHT = '#c8843f';
+  const CHECK_LIGHT = '#fdf6e3', CHECK_DARK = '#2f3542';
+  // Leuchten um den Bogen: einmal um (0,0) gebaut und beim Zeichnen verschoben
+  const goalGradient = ctx.createRadialGradient(0, 0, 10, 0, 0, 250);
+  goalGradient.addColorStop(0, 'rgba(255,238,170,1)');
+  goalGradient.addColorStop(0.55, 'rgba(255,214,120,0.45)');
+  goalGradient.addColorStop(1, 'rgba(255,214,120,0)');
+
   function drawFinish() {
     if (mode !== 'level') return;
     const x = finishX - cameraX;
-    if (x < -80 || x > W + 120) return;
-    const top = GROUND_Y - 210;
-    ctx.fillStyle = '#8a5a33';                                   // Pfosten
-    ctx.fillRect(x - 4, top, 9, GROUND_Y - top + 6);
-    const cell = 15, cols = 6, rows = 3;                         // Banner
-    for (let r = 0; r < rows; r++) {
+    if (x < -260 || x > W + 260) return;
+    goalGlow(x);
+    goalGroundLine(x);
+    goalPost(x - GOAL.half);
+    goalPost(x + GOAL.half);
+    goalArch(x);
+    goalBunting(x);
+    goalSign(x);
+    goalFlag(x - GOAL.half, -1);
+    goalFlag(x + GOAL.half, 1);
+    goalSparks(x);
+  }
+
+  // warmes Leuchten hinter dem Bogen – das Ziel strahlt schon von weitem
+  function goalGlow(x) {
+    ctx.save();
+    ctx.translate(x, GROUND_Y - 120);
+    ctx.globalAlpha = 0.20 + (0.5 + 0.5 * Math.sin(time * 2.4)) * 0.12;
+    ctx.fillStyle = goalGradient;
+    ctx.fillRect(-250, -250, 500, 500);
+    ctx.restore();
+  }
+
+  // Karo-Streifen quer über den Weg: der eigentliche Zielstrich.
+  // Über einem Loch oder Bach wird nichts gemalt – da ist ja kein Boden.
+  function goalGroundLine(x) {
+    for (const h of holes) {
+      const hx = h.x - cameraX;
+      if (hx < x + 26 && hx + h.w > x - 26) return;
+    }
+    const cell = 20, cols = 3, bx = x - cols * cell / 2;
+    for (let r = 0; GROUND_Y + r * cell < H; r++) {
+      ctx.globalAlpha = clamp(1 - r * 0.12, 0.35, 1);
       for (let c = 0; c < cols; c++) {
-        ctx.fillStyle = (r + c) % 2 ? '#222' : '#fff';
-        ctx.fillRect(x + 5 + c * cell, top + r * cell, cell, cell);
+        ctx.fillStyle = (r + c) % 2 ? CHECK_DARK : CHECK_LIGHT;
+        ctx.fillRect(bx + c * cell, GROUND_Y + r * cell, cell, cell);
       }
     }
-    ctx.fillStyle = 'rgba(255,255,255,0.75)';                    // Markierung am Boden
-    ctx.fillRect(x - 4, GROUND_Y, 9, 14);
-    ctx.font = 'bold 20px "Segoe UI", system-ui, sans-serif';
+    ctx.globalAlpha = 1;
+  }
+
+  // Pfosten aus Holz: Schatten am Boden, heller Streifen als Lichtkante, Kappe
+  function goalPost(px) {
+    const w = GOAL.postW, top = GOAL.postTop;
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.beginPath();
+    ctx.ellipse(px, GROUND_Y + 9, w * 1.4, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = WOOD;
+    roundRect(px - w / 2, top, w, GROUND_Y + 6 - top, 5); ctx.fill();
+    ctx.fillStyle = WOOD_LIGHT;
+    ctx.fillRect(px - w / 2 + 4, top + 14, 3, GROUND_Y - top - 22);
+    ctx.fillStyle = WOOD_DARK;                                   // Kappe
+    roundRect(px - w / 2 - 5, top - 12, w + 10, 15, 4); ctx.fill();
+  }
+
+  // Punkt auf dem Bogen (t = 0 ganz links … 1 ganz rechts)
+  function archPoint(x, t) {
+    const y0 = GOAL.postTop, cy = 2 * GOAL.apex - y0;   // so trifft der Scheitel genau apex
+    const u = 1 - t;
+    return {
+      x: u * u * (x - GOAL.half) + 2 * u * t * x + t * t * (x + GOAL.half),
+      y: (u * u + t * t) * y0 + 2 * u * t * cy,
+    };
+  }
+
+  function archPath(x, dy) {
+    const y0 = GOAL.postTop + dy, cy = 2 * GOAL.apex - GOAL.postTop + dy;
+    ctx.beginPath();
+    ctx.moveTo(x - GOAL.half, y0);
+    ctx.quadraticCurveTo(x, cy, x + GOAL.half, y0);
+  }
+
+  // der Bogen selbst: dicker Holzbalken mit heller Kante obendrauf
+  function goalArch(x) {
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = WOOD;
+    ctx.lineWidth = 20;
+    archPath(x, 0); ctx.stroke();
+    ctx.strokeStyle = WOOD_LIGHT;
+    ctx.lineWidth = 6;
+    archPath(x, -6); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Wimpelkette unter dem Bogen – weht leicht im Wind
+  function goalBunting(x) {
+    const n = 9;
+    for (let i = 0; i < n; i++) {
+      const p = archPoint(x, (i + 0.5) / n);
+      const sway = Math.sin(time * 3 + i * 0.7) * 5;
+      const len = 20 + (i % 2) * 5;
+      ctx.fillStyle = RAINBOW[i % RAINBOW.length];
+      ctx.beginPath();
+      ctx.moveTo(p.x - 8, p.y + 7);
+      ctx.lineTo(p.x + 8, p.y + 7);
+      ctx.lineTo(p.x + sway, p.y + 7 + len);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  // Schild über dem Bogen: Holzrahmen, helle Fläche, "ZIEL" und zwei Sterne
+  function goalSign(x) {
+    const w = GOAL.signW, h = GOAL.signH;
+    const by = GOAL.apex - 16 - h, cy = by + h / 2;
+    ctx.fillStyle = WOOD_DARK;                                   // zwei kurze Stützen
+    ctx.fillRect(x - 32, by + h - 4, 8, 24);
+    ctx.fillRect(x + 24, by + h - 4, 8, 24);
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';                          // Schlagschatten
+    roundRect(x - w / 2 - 3, by - 3, w + 12, h + 12, 13); ctx.fill();
+    ctx.fillStyle = WOOD;                                        // Rahmen
+    roundRect(x - w / 2 - 6, by - 6, w + 12, h + 12, 13); ctx.fill();
+    ctx.fillStyle = '#fff6df';                                   // Schildfläche
+    roundRect(x - w / 2, by, w, h, 8); ctx.fill();
+    goalStar(x - 64, cy, 11, '#f5b301');
+    goalStar(x + 64, cy, 11, '#f5b301');
+    ctx.font = 'bold 34px "Segoe UI", system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    outlinedText('ZIEL', x + 50, top - 16, '#fff', 'rgba(0,0,0,0.55)');
+    outlinedText('ZIEL', x, cy + 1, '#8a4b1a', 'rgba(255,255,255,0.9)');
+  }
+
+  function goalStar(cx, cy, r, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + i * Math.PI / 5;
+      const rr = i % 2 ? r * 0.45 : r;
+      const px = cx + Math.cos(a) * rr, py = cy + Math.sin(a) * rr;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Karo-Fähnchen auf einem Pfosten (dir = -1 nach links, 1 nach rechts).
+  // Jede Spalte schwingt etwas versetzt – dadurch sieht die Fahne aus, als
+  // würde sie wehen.
+  function goalFlag(px, dir) {
+    const mastTop = GOAL.postTop - 48;
+    ctx.fillStyle = WOOD_DARK;
+    ctx.fillRect(px - 2, mastTop, 4, 52);
+    ctx.fillStyle = '#ffd166';                                   // Knauf oben
+    ctx.beginPath(); ctx.arc(px, mastTop - 1, 5, 0, Math.PI * 2); ctx.fill();
+    const cell = 11, cols = 4, rows = 3;
+    for (let c = 0; c < cols; c++) {
+      const wave = Math.sin(time * 6 - c * 0.9 + (dir < 0 ? Math.PI : 0)) * (1.5 + c * 1.3);
+      const cx = px + dir * c * cell + (dir < 0 ? -cell : 0);
+      for (let r = 0; r < rows; r++) {
+        ctx.fillStyle = (r + c) % 2 ? CHECK_DARK : CHECK_LIGHT;
+        ctx.fillRect(cx, mastTop + 5 + r * cell + wave, cell + 0.5, cell + 0.5);
+      }
+    }
+  }
+
+  // kleine Funken, die am Bogen aufsteigen und oben verglühen
+  function goalSparks(x) {
+    ctx.fillStyle = '#fff3b0';
+    for (let i = 0; i < 12; i++) {
+      const life = (time * 0.5 + hash(i)) % 1;
+      const fade = Math.sin(life * Math.PI);
+      const px = x + (hash(i + 20) - 0.5) * 240;
+      const py = GROUND_Y - 10 - life * 260;
+      ctx.globalAlpha = fade * 0.9;
+      goalSpark(px, py, (2.2 + hash(i + 40) * 2.2) * fade);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function goalSpark(cx, cy, r) {
+    if (r < 0.3) return;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - r * 2.2);
+    ctx.lineTo(cx + r, cy);
+    ctx.lineTo(cx, cy + r * 2.2);
+    ctx.lineTo(cx - r, cy);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Konfetti, sobald das Pony durchs Ziel läuft: erst knallt es am Bogen los,
+  // dann schneit es über die ganze Breite. Wird nach dem Pony gezeichnet,
+  // damit die Schnipsel auch vor ihm herfliegen.
+  function drawFinishConfetti() {
+    if (mode !== 'level' || state !== 'finish') return;
+    const t = finishTimer;
+    const gate = finishX - cameraX;
+    for (let i = 0; i < 26; i++) {                          // Knall am Bogen
+      const a = -Math.PI / 2 + (hash(i) - 0.5) * 2.4;
+      const v = 200 + hash(i + 5) * 300;
+      confettiFlake(i, gate + Math.cos(a) * v * t + (hash(i + 2) - 0.5) * 30,
+                    GOAL.apex - 20 + Math.sin(a) * v * t + 430 * t * t,
+                    t * (4 + hash(i + 9) * 9), clamp(1.6 - t, 0, 1));
+    }
+    for (let i = 0; i < 34; i++) {                          // Konfettiregen
+      const fall = 250 + hash(i + 31) * 260;
+      confettiFlake(i, hash(i + 17) * W + Math.sin(t * 3 + i) * 26 - t * 50,
+                    -30 - hash(i + 23) * H + t * fall,
+                    t * (3 + hash(i + 41) * 7), clamp(2.4 - t * 1.7, 0, 1));
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function confettiFlake(i, x, y, angle, alpha) {
+    if (y < -20 || y > H + 20 || alpha <= 0) return;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(hash(i + 3) * 6.283 + angle);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = RAINBOW[i % RAINBOW.length];
+    ctx.fillRect(-5, -3.5, 10, 7);
+    ctx.restore();
   }
 
   function drawPony() {

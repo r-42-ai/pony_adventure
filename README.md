@@ -60,7 +60,9 @@ Level ändern oder neue dazu: in `js/levels.js`, dort ist jeder Wert erklärt.
 - Münzen einsammeln (Linien, Bögen, über Hindernissen und Löchern)
 - Levelübersicht: die Level liegen auf einem Weg in Schlangenlinien,
   von links (einfach) nach rechts (schnell), mit Sternen und Schlössern
-- Fortschrittsbalken und Ziellinie im Level
+- Fortschrittsbalken im Level und ein Zielbogen aus Holz: Karo-Zielstrich
+  auf dem Boden, Wimpelkette, Schild und wehende Fähnchen – beim
+  Durchlaufen fliegt Konfetti
 - Pause-Fenster mit Weiter / Nochmal / Abbrechen
 - Spielstand (Münzen, Sterne, freigeschaltete Level) im `localStorage`
 - Zeichnet in der echten Bildschirmauflösung (scharf auf großen Monitoren)
