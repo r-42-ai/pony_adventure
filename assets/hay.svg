@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="58" viewBox="0 0 64 58">
+  <!-- Strohballen -->
+  <rect x="3" y="5" width="58" height="50" rx="12" fill="#e8c46a" stroke="#b8912f" stroke-width="3"/>
+  <path d="M10 18 C 24 12, 40 12, 54 18 M8 30 C 24 24, 40 24, 56 30 M10 42 C 24 36, 40 36, 54 42"
+        fill="none" stroke="#c9a244" stroke-width="3" stroke-linecap="round"/>
+  <path d="M20 6 L 24 2 M40 6 L 44 2" stroke="#e8c46a" stroke-width="3" stroke-linecap="round"/>
+</svg>

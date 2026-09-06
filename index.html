@@ -12,15 +12,58 @@
     <!-- Hier wird das Spiel gezeichnet (960x540, wird per CSS skaliert) -->
     <canvas id="canvas" width="960" height="540"></canvas>
 
+    <!-- Pause-Knopf: liegt über dem Spielfeld, nur während des Spiels sichtbar -->
+    <button id="btn-pause" class="hidden" title="Pause (Esc)">⏸</button>
+
     <!-- Titelbildschirm -->
     <div id="screen-title" class="screen">
       <div class="panel">
         <h1>🐴 Pony Adventure</h1>
         <p>Das Pony läuft von ganz allein.<br>Spring über Hindernisse und sammle Münzen!</p>
         <p class="hint"><kbd>Leertaste</kbd>, <kbd>↑</kbd> oder Tippen = Springen</p>
-        <button id="btn-start" class="big">Los geht's!</button>
+        <button id="btn-start" class="big">🗺️ Level wählen</button>
+        <button id="btn-endless">♾️ Endlos-Modus</button>
         <button id="btn-shop">🛒 Shop</button>
         <p class="stats" id="title-stats"></p>
+      </div>
+    </div>
+
+    <!-- Levelübersicht: Karten werden von js/game.js erzeugt -->
+    <div id="screen-levels" class="screen hidden">
+      <div class="panel wide">
+        <h2>🐴 Pferde-Level</h2>
+        <p class="stats" id="level-progress"></p>
+        <div id="level-map" class="level-map"></div>
+        <p class="hint">Der Weg geht von links (einfach) nach rechts (schnell und schwer).
+          Kommst du ins Ziel, wird das nächste Level freigeschaltet.<br>
+          Sterne gibt es für die Münzen: ★ ins Ziel, ★★ ab 60 %, ★★★ ab 90 % aller Münzen.</p>
+        <button id="btn-levels-back">🏠 Zurück</button>
+      </div>
+    </div>
+
+    <!-- Level geschafft -->
+    <div id="screen-won" class="screen hidden">
+      <div class="panel">
+        <h2>Geschafft! 🎉</h2>
+        <p id="won-level"></p>
+        <p id="won-stars" class="stars-big"></p>
+        <p id="won-stats"></p>
+        <p id="won-outro" class="hint hidden">Alle Pferde-Level geschafft!<br>Die Einhorn-Level kommen bald. 🦄</p>
+        <button id="won-next" class="big">Nächstes Level ▶</button>
+        <button id="won-again">🔁 Nochmal</button>
+        <button id="won-back">🗺️ Übersicht</button>
+      </div>
+    </div>
+
+    <!-- Pause -->
+    <div id="screen-pause" class="screen hidden">
+      <div class="panel">
+        <h2>⏸ Pause</h2>
+        <p id="pause-info"></p>
+        <button id="btn-resume" class="big">▶ Weiter</button>
+        <button id="btn-pause-retry">🔁 Nochmal</button>
+        <button id="btn-pause-quit">🗺️ Übersicht</button>
+        <p class="hint">Mit <kbd>Esc</kbd> oder <kbd>P</kbd> geht es auch weiter.</p>
       </div>
     </div>
 
@@ -30,6 +73,7 @@
         <h2>Autsch! 🙈</h2>
         <p id="dead-stats"></p>
         <button id="btn-retry" class="big">Nochmal!</button>
+        <button id="btn-dead-back">🗺️ Übersicht</button>
         <button id="btn-shop2">🛒 Shop</button>
       </div>
     </div>
@@ -45,13 +89,15 @@
           <li><span>🪢 Seil</span><span>20 🪙</span><button disabled>bald</button></li>
           <li><span>🌉 Brücke</span><span>50 🪙</span><button disabled>bald</button></li>
         </ul>
-        <p class="hint">Der Shop ist noch eine Baustelle: Hier kann man später Material kaufen,<br>um Löcher zu füllen und Brücken für das Pony zu bauen.</p>
+        <p class="hint">Der Shop ist noch eine Baustelle: Hier kann man später Material kaufen,<br>
+          um Löcher zu füllen und Brücken für das Pony zu bauen.</p>
         <button id="btn-shop-back" class="big">Zurück</button>
         <button id="btn-reset" class="tiny">Spielstand löschen</button>
       </div>
     </div>
   </div>
 
+  <script src="js/levels.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>
