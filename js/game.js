@@ -618,9 +618,6 @@
   function reachFinish() {
     state = 'finish';
     finishTimer = 0;
-    for (let i = 0; i < 6; i++) {
-      effects.push({ x: cameraX + rand(200, 800), y: rand(120, 360), text: '🎉', t: rand(0, 0.3) });
-    }
   }
 
   function levelDone() {
@@ -790,6 +787,7 @@
     drawObstacles();
     drawFinish();
     drawPony();
+    drawFinishConfetti();
     drawEffects();
     drawHUD();
     if (DEBUG) drawDebug();
@@ -1056,27 +1054,269 @@
     }
   }
 
-  // Ziellinie mit Karo-Banner
+  /* --- Ziel: ein Blumenbogen --------------------------------------------
+     Am Ende jedes Levels steht ein Bogen quer über dem Weg, so wie das
+     Zieltor auf einem Reitplatz: zwei weiß lackierte Ständer, dazwischen
+     eine Girlande aus Blättern und Blüten, daran hängt das Zielbanner.
+     Damit man das Ziel schon von weitem erkennt, gehören dazu der
+     Karo-Zielstrich auf dem Boden, zwei wehende Karo-Fähnchen, ein warmes
+     Leuchten und ein paar Funken. Beim Durchlaufen fliegt Konfetti.
+     Der Bogen ist innen frei – da läuft das Pony durch, springen muss es
+     hier nichts mehr. */
+  const GOAL = {
+    half: 118,                   // halbe Weite: die Ständer stehen bei x ± half
+    postW: 22,                   // Dicke eines Ständers
+    postTop: GROUND_Y - 172,     // Oberkante der Ständer
+    apex: GROUND_Y - 252,        // höchster Punkt der Girlande
+    bannerW: 142, bannerH: 56,   // Banner, das an der Girlande hängt
+  };
+  const POST_LIGHT = '#fdfaf3', POST_SHADE = '#e2d8c9', POST_BAND = '#ff7ab3';
+  const LEAF_DARK = '#3f8f5c', LEAF_LIGHT = '#63b873';
+  const CHECK_LIGHT = '#fdf6e3', CHECK_DARK = '#2f3542';
+  // Verläufe einmal um (0,0) bauen und beim Zeichnen an die richtige Stelle schieben
+  const bannerGradient = ctx.createLinearGradient(0, 0, 0, GOAL.bannerH);
+  bannerGradient.addColorStop(0, '#ffe28f');
+  bannerGradient.addColorStop(1, '#f5a63c');
+  const goalGradient = ctx.createRadialGradient(0, 0, 10, 0, 0, 260);
+  goalGradient.addColorStop(0, 'rgba(255,240,180,1)');
+  goalGradient.addColorStop(0.55, 'rgba(255,214,140,0.45)');
+  goalGradient.addColorStop(1, 'rgba(255,214,140,0)');
+
   function drawFinish() {
     if (mode !== 'level') return;
     const x = finishX - cameraX;
-    if (x < -80 || x > W + 120) return;
-    const top = GROUND_Y - 210;
-    ctx.fillStyle = '#8a5a33';                                   // Pfosten
-    ctx.fillRect(x - 4, top, 9, GROUND_Y - top + 6);
-    const cell = 15, cols = 6, rows = 3;                         // Banner
-    for (let r = 0; r < rows; r++) {
+    if (x < -280 || x > W + 280) return;
+    goalGlow(x);
+    goalGroundLine(x);
+    goalPost(x - GOAL.half);
+    goalPost(x + GOAL.half);
+    goalGarland(x);
+    goalBanner(x);
+    goalFlag(x - GOAL.half, -1);
+    goalFlag(x + GOAL.half, 1);
+    goalSparks(x);
+  }
+
+  // warmes Leuchten hinter dem Bogen – das Ziel strahlt schon von weitem
+  function goalGlow(x) {
+    ctx.save();
+    ctx.translate(x, GROUND_Y - 130);
+    ctx.globalAlpha = 0.20 + (0.5 + 0.5 * Math.sin(time * 2.4)) * 0.12;
+    ctx.fillStyle = goalGradient;
+    ctx.fillRect(-260, -260, 520, 520);
+    ctx.restore();
+  }
+
+  // Karo-Streifen quer über den Weg: der eigentliche Zielstrich, auf den
+  // Boden gemalt und mit dunklen Kanten sauber abgesetzt. Über einem Loch
+  // oder Bach wird nichts gemalt, da ist ja kein Boden.
+  function goalGroundLine(x) {
+    for (const h of holes) {
+      const hx = h.x - cameraX;
+      if (hx < x + 34 && hx + h.w > x - 34) return;
+    }
+    const cell = 22, cols = 2, bx = x - cols * cell / 2, w = cols * cell;
+    for (let r = 0; GROUND_Y + r * cell < H; r++) {
       for (let c = 0; c < cols; c++) {
-        ctx.fillStyle = (r + c) % 2 ? '#222' : '#fff';
-        ctx.fillRect(x + 5 + c * cell, top + r * cell, cell, cell);
+        ctx.fillStyle = (r + c) % 2 ? CHECK_DARK : CHECK_LIGHT;
+        ctx.fillRect(bx + c * cell, GROUND_Y + r * cell, cell, cell);
       }
     }
-    ctx.fillStyle = 'rgba(255,255,255,0.75)';                    // Markierung am Boden
-    ctx.fillRect(x - 4, GROUND_Y, 9, 14);
-    ctx.font = 'bold 20px "Segoe UI", system-ui, sans-serif';
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';                          // Kanten links und rechts
+    ctx.fillRect(bx - 3, GROUND_Y, 3, H - GROUND_Y);
+    ctx.fillRect(bx + w, GROUND_Y, 3, H - GROUND_Y);
+  }
+
+  // Ständer wie auf dem Reitplatz: weiß lackiert, mit bunten Ringen
+  function goalPost(px) {
+    const w = GOAL.postW, top = GOAL.postTop, len = GROUND_Y + 6 - top;
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.beginPath();
+    ctx.ellipse(px, GROUND_Y + 9, w * 1.6, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = POST_LIGHT;
+    roundRect(px - w / 2, top, w, len, 6); ctx.fill();
+    ctx.fillStyle = POST_SHADE;                                  // Schattenseite
+    ctx.fillRect(px + w / 2 - 5, top + 10, 4, len - 20);
+    ctx.fillStyle = POST_BAND;                                   // bunte Ringe
+    for (let k = 1; k <= 3; k++) ctx.fillRect(px - w / 2, top + len * k / 4, w, 7);
+    ctx.fillStyle = POST_LIGHT;                                  // Kappe
+    roundRect(px - w / 2 - 6, top - 13, w + 12, 16, 5); ctx.fill();
+    ctx.fillStyle = POST_SHADE;                                  // Fußplatte
+    roundRect(px - w / 2 - 8, GROUND_Y - 8, w + 16, 16, 5); ctx.fill();
+  }
+
+  // Punkt auf der Girlande (t = 0 ganz links … 1 ganz rechts)
+  function archPoint(x, t) {
+    const y0 = GOAL.postTop, cy = 2 * GOAL.apex - y0;   // so trifft der Scheitel genau apex
+    const u = 1 - t;
+    return {
+      x: u * u * (x - GOAL.half) + 2 * u * t * x + t * t * (x + GOAL.half),
+      y: (u * u + t * t) * y0 + 2 * u * t * cy,
+    };
+  }
+
+  function archPath(x, dy) {
+    const y0 = GOAL.postTop + dy, cy = 2 * GOAL.apex - GOAL.postTop + dy;
+    ctx.beginPath();
+    ctx.moveTo(x - GOAL.half, y0);
+    ctx.quadraticCurveTo(x, cy, x + GOAL.half, y0);
+  }
+
+  // Girlande: grünes Seil, darauf Blätter und Blüten
+  function goalGarland(x) {
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = LEAF_DARK;
+    ctx.lineWidth = 15;
+    archPath(x, 0); ctx.stroke();
+    ctx.strokeStyle = LEAF_LIGHT;
+    ctx.lineWidth = 7;
+    archPath(x, -4); ctx.stroke();
+    ctx.restore();
+    const leaves = 24;
+    for (let i = 0; i <= leaves; i++) {                          // Blätter
+      const p = archPoint(x, i / leaves), q = archPoint(x, i / leaves + 0.02);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(Math.atan2(q.y - p.y, q.x - p.x) + (i % 2 ? 1 : -1) * 0.95);
+      ctx.fillStyle = i % 2 ? LEAF_LIGHT : LEAF_DARK;
+      ctx.beginPath();
+      ctx.ellipse(11, 0, 11, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    for (let i = 0; i < 7; i++) {                                // Blüten
+      const p = archPoint(x, (i + 0.5) / 7);
+      goalFlower(p.x, p.y + Math.sin(time * 2 + i) * 2, 9,
+                 FLOWER_COLORS[i % FLOWER_COLORS.length]);
+    }
+  }
+
+  function goalFlower(cx, cy, r, color) {
+    ctx.fillStyle = color;
+    for (let k = 0; k < 5; k++) {
+      const a = k * Math.PI * 2 / 5;
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(a) * r * 0.62, cy + Math.sin(a) * r * 0.62, r * 0.52, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#ffd166';
+    ctx.beginPath(); ctx.arc(cx, cy, r * 0.36, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Zielbanner: hängt an zwei Bändern unter der Girlande und schaukelt leicht
+  function goalBanner(x) {
+    const w = GOAL.bannerW, h = GOAL.bannerH;
+    const top = GOAL.apex + 30;                                  // die Girlande bleibt frei
+    ctx.strokeStyle = '#d9527f';                                 // Bänder zur Girlande
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    for (const s of [-1, 1]) {
+      const p = archPoint(x, 0.5 + s * 0.13);
+      ctx.moveTo(p.x, p.y + 6);
+      ctx.lineTo(x + s * w * 0.34, top);
+    }
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(x, top);
+    ctx.rotate(Math.sin(time * 1.4) * 0.022);
+    ctx.beginPath();                                             // Tuch mit Schwalbenschwanz
+    ctx.moveTo(-w / 2, 0);
+    ctx.lineTo(w / 2, 0);
+    ctx.lineTo(w / 2, h - 16);
+    ctx.lineTo(0, h);
+    ctx.lineTo(-w / 2, h - 16);
+    ctx.closePath();
+    ctx.fillStyle = bannerGradient;
+    ctx.fill();
+    ctx.lineWidth = 5;
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#d9527f';
+    ctx.stroke();
+    ctx.font = 'bold 30px "Segoe UI", system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    outlinedText('ZIEL', x + 50, top - 16, '#fff', 'rgba(0,0,0,0.55)');
+    outlinedText('ZIEL', 0, h * 0.42, '#fff', 'rgba(150,40,80,0.85)');
+    ctx.restore();
+  }
+
+  // Karo-Fähnchen auf einem Ständer (dir = -1 nach links, 1 nach rechts).
+  // Jede Spalte schwingt etwas versetzt – dadurch sieht die Fahne aus, als
+  // würde sie wehen.
+  function goalFlag(px, dir) {
+    const mastTop = GOAL.postTop - 56;
+    ctx.fillStyle = POST_SHADE;
+    ctx.fillRect(px - 2, mastTop, 4, 60);
+    ctx.fillStyle = '#ffd166';                                   // Knauf oben
+    ctx.beginPath(); ctx.arc(px, mastTop - 1, 5, 0, Math.PI * 2); ctx.fill();
+    const cell = 11, cols = 4, rows = 3;
+    for (let c = 0; c < cols; c++) {
+      const wave = Math.sin(time * 6 - c * 0.9 + (dir < 0 ? Math.PI : 0)) * (1.5 + c * 1.3);
+      const cx = px + dir * c * cell + (dir < 0 ? -cell : 0);
+      for (let r = 0; r < rows; r++) {
+        ctx.fillStyle = (r + c) % 2 ? CHECK_DARK : CHECK_LIGHT;
+        ctx.fillRect(cx, mastTop + 5 + r * cell + wave, cell + 0.5, cell + 0.5);
+      }
+    }
+  }
+
+  // kleine Funken, die am Bogen aufsteigen und oben verglühen
+  function goalSparks(x) {
+    for (let i = 0; i < 14; i++) {
+      const life = (time * 0.5 + hash(i)) % 1;
+      const fade = Math.sin(life * Math.PI);
+      ctx.globalAlpha = fade * 0.9;
+      ctx.fillStyle = i % 3 ? '#fff3b0' : '#ffc6de';
+      goalSpark(x + (hash(i + 20) - 0.5) * 250, GROUND_Y - 10 - life * 270,
+                (2.4 + hash(i + 40) * 2.4) * fade);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function goalSpark(cx, cy, r) {
+    if (r < 0.3) return;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - r * 2.2);
+    ctx.lineTo(cx + r, cy);
+    ctx.lineTo(cx, cy + r * 2.2);
+    ctx.lineTo(cx - r, cy);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Konfetti, sobald das Pony durchs Ziel läuft: erst knallt es am Bogen los,
+  // dann schneit es über die ganze Breite. Wird nach dem Pony gezeichnet,
+  // damit die Schnipsel auch vor ihm herfliegen.
+  function drawFinishConfetti() {
+    if (mode !== 'level' || state !== 'finish') return;
+    const t = finishTimer;
+    const gate = finishX - cameraX;
+    for (let i = 0; i < 26; i++) {                          // Knall am Bogen
+      const a = -Math.PI / 2 + (hash(i) - 0.5) * 2.4;
+      const v = 200 + hash(i + 5) * 300;
+      confettiFlake(i, gate + Math.cos(a) * v * t + (hash(i + 2) - 0.5) * 30,
+                    GOAL.apex - 20 + Math.sin(a) * v * t + 430 * t * t,
+                    t * (4 + hash(i + 9) * 9), clamp(1.6 - t, 0, 1));
+    }
+    for (let i = 0; i < 34; i++) {                          // Konfettiregen
+      const fall = 250 + hash(i + 31) * 260;
+      confettiFlake(i, hash(i + 17) * W + Math.sin(t * 3 + i) * 26 - t * 50,
+                    -30 - hash(i + 23) * H + t * fall,
+                    t * (3 + hash(i + 41) * 7), clamp(2.4 - t * 1.7, 0, 1));
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function confettiFlake(i, x, y, angle, alpha) {
+    if (y < -20 || y > H + 20 || alpha <= 0) return;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(hash(i + 3) * 6.283 + angle);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = RAINBOW[i % RAINBOW.length];
+    ctx.fillRect(-5, -3.5, 10, 7);
+    ctx.restore();
   }
 
   function drawPony() {
